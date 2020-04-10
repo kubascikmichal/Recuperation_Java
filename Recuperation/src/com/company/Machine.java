@@ -1,5 +1,7 @@
 package com.company;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Random;
 
 public class Machine {
@@ -14,14 +16,17 @@ public class Machine {
         this.ideal_humidity = id_hum;
     }
 
-    public void change(Room room, double hum_out, double temp_out, double CO2_out) {
+    public void change(@NotNull Room room, double hum_out, double temp_out, double CO2_out) {
         double V_hum_i = ideal_V_hum(room.getVolume_of_room(), room.getHumidity(), hum_out);
         double V_CO2_i = ideal_V_CO2(room.getVolume_of_room(), room.getCO2(), CO2_out);
         double V_temp_i = ideal_V_temp(room.getVolume_of_room(), room.getTemperature(), room.getHumidity(), temp_out, hum_out);
 
-        double V_ideal = (V_hum_i*distance(this.ideal_humidity, room.getHumidity()) + V_temp_i * distance(this.ideal_temperature, room.getTemperature()) + V_CO2_i * 10*distance(this.ideal_CO2, room.getCO2()))/
-                (distance(this.ideal_humidity, room.getHumidity()) + distance(this.ideal_temperature, room.getTemperature()) + 10*distance(this.ideal_CO2, room.getCO2()));
+        double V_ideal = (V_hum_i*dist_hum(this.ideal_humidity, room.getHumidity()) + V_temp_i * dist_temp(this.ideal_temperature, room.getTemperature()) + V_CO2_i * dist_CO2(this.ideal_CO2, room.getCO2()))/
+                (dist_hum(this.ideal_humidity, room.getHumidity()) + dist_temp(this.ideal_temperature, room.getTemperature()) + dist_CO2(this.ideal_CO2, room.getCO2()));
 
+        if (V_ideal > room.getVolume_of_room()) {
+            V_ideal = room.getVolume_of_room();
+        }
         room.setHumidity((room.getHumidity() * (room.getVolume_of_room() - V_ideal) + hum_out*V_ideal) / room.getVolume_of_room());
         room.setCO2((room.getCO2() * (room.getVolume_of_room() - V_ideal) + CO2_out * V_ideal)/(room.getVolume_of_room()));
 
@@ -30,6 +35,18 @@ public class Machine {
                 (2 * c_mix(hum_out) * density_mix(hum_out));
         room.setTemperature((density_mix(room.getHumidity()) * c_mix(room.getHumidity()) * room.getTemperature()*(room.getVolume_of_room() - V_ideal)
                 + density_mix(hum_out) * c_mix(hum_out) * temp_ex * V_ideal) / (density_mix(room.getHumidity()) * c_mix(room.getHumidity()) * room.getVolume_of_room()));
+    }
+
+    private double dist_CO2(double ideal_co2, double co2) {
+        return distance(ideal_co2, co2)  / 0.04;
+    }
+
+    private double dist_temp(double ideal_temperature, double temperature) {
+        return distance(ideal_temperature, temperature) / 0.5;
+    }
+
+    private double dist_hum(double ideal_humidity, double humidity) {
+        return distance(ideal_humidity, humidity) / 5;
     }
 
     /**
@@ -44,6 +61,8 @@ public class Machine {
         if ((hum_in < this.ideal_humidity && hum_out >= this.ideal_humidity) || (hum_in > this.ideal_humidity && hum_out <= this.ideal_humidity)) {
             V_ex *= (((this.ideal_humidity - hum_in) / (hum_out - hum_in)) > 1) ? 1 : ((this.ideal_humidity - hum_in) / (hum_out - hum_in));
             return V_ex;
+        } else if ((hum_in > hum_out && hum_out > this.ideal_humidity) || (hum_in < hum_out && hum_out < this.ideal_humidity)) {
+            return  V_room;
         }
         return 0;
     }
@@ -60,6 +79,8 @@ public class Machine {
         if ((CO2_in < this.ideal_CO2 && CO2_out >= this.ideal_CO2) || (CO2_in > this.ideal_CO2 && CO2_out <= this.ideal_CO2)) {
             V_ex *= (((this.ideal_CO2 - CO2_in) / (CO2_out - CO2_in)) > 1) ? 1 : ((this.ideal_CO2 - CO2_in) / (CO2_out - CO2_in));
             return V_ex;
+        } else if((CO2_in > CO2_out && CO2_out > this.ideal_CO2) || (CO2_in < CO2_out && CO2_out < this.ideal_CO2)) {
+            return V_room;
         }
         return 0;
     }

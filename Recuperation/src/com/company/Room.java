@@ -48,7 +48,8 @@ public class Room {
     }
 
     public void plus_CO2() {
-        this.CO2 += 0.08;
+        // TODO: 27. 3. 2020 plus by hour must depend on count of people & activity & volume of room 
+        this.CO2 += 0.01;
     }
     @Override
     public String toString() {

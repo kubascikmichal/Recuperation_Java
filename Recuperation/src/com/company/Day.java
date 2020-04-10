@@ -9,6 +9,7 @@ public class Day {
         this.day = new Hour[24];
     }
 
+    // TODO: 27. 3. 2020 random generating of day with some intelligence
     private boolean gen_rand_day() {
         Random r = new Random();
         for (Hour h : day) {
