@@ -5,17 +5,47 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Random;
 
 public class Machine {
-
+    /**
+     * ideal_temperature - ideal temperature of room, where machine is [Celsius degrees]
+     * ideal_humidity - ideal humidity of room, where machine is [%]
+     * ideal_CO2 - ideal percentage of CO2 in air of room, where machine is [%]
+     */
     private double ideal_temperature;
     private double ideal_humidity;
-    private final double ideal_CO2 = 0.04;
-    private double efficienty;
+    private double ideal_CO2;
+    //private double efficiency;
 
+    /**
+     *
+     * @param id_temp - ideal temperature
+     * @param id_hum - ideal humidity
+     * ideal_CO2 is by default 0.04
+     */
     public Machine(double id_temp, double id_hum) {
         this.ideal_temperature = id_temp;
         this.ideal_humidity = id_hum;
+        this.ideal_CO2 = 0.04;
     }
 
+    /**
+     *
+     * @param id_temp - ideal temperature
+     * @param id_hum - ideal humidity
+     * @param id_CO2 - ideal CO2
+     */
+    public Machine(double id_temp, double id_hum, double id_CO2) {
+        this.ideal_temperature = id_temp;
+        this.ideal_humidity = id_hum;
+        this.ideal_CO2 = id_CO2;
+    }
+
+    /**
+     *
+     * @param room - room where machine is
+     * @param hum_out - humidity outside [%]
+     * @param temp_out - temperature outside [%]
+     * @param CO2_out - percentage of CO2 out [%], by default should be 0.04
+     */
     public void change(@NotNull Room room, double hum_out, double temp_out, double CO2_out) {
         double V_hum_i = ideal_V_hum(room.getVolume_of_room(), room.getHumidity(), hum_out);
         double V_CO2_i = ideal_V_CO2(room.getVolume_of_room(), room.getCO2(), CO2_out);
@@ -37,14 +67,32 @@ public class Machine {
                 + density_mix(hum_out) * c_mix(hum_out) * temp_ex * V_ideal) / (density_mix(room.getHumidity()) * c_mix(room.getHumidity()) * room.getVolume_of_room()));
     }
 
+    /**
+     * Count relative distance between ideal CO2 and actual CO2, depending on sensibility of system (for CO2 it is 0.04%)
+     * @param ideal_co2 - ideal CO2 set in constructor (by default 0.04 or another value)
+     * @param co2 - CO2 actually in room
+     * @return relative distance
+     */
     private double dist_CO2(double ideal_co2, double co2) {
         return distance(ideal_co2, co2)  / 0.04;
     }
 
+    /**
+     * Count relative distance between ideal temperature and actual temperature, depending on sensibility of system (for temperature it is 1)
+     * @param ideal_temperature - ideal temperature set in constructor
+     * @param temperature - temperature actually in room
+     * @return distance between values
+     */
     private double dist_temp(double ideal_temperature, double temperature) {
-        return distance(ideal_temperature, temperature) / 0.5;
+        return distance(ideal_temperature, temperature) / 1;
     }
 
+    /**
+     * Count relative distance between ideal humidity and actual humidity, depending on sensibility of system (for humidity it is 5%)
+     * @param ideal_humidity - ideal humidity set in constructor
+     * @param humidity - humidity actually in room
+     * @return distance between values
+     */
     private double dist_hum(double ideal_humidity, double humidity) {
         return distance(ideal_humidity, humidity) / 5;
     }
@@ -103,12 +151,18 @@ public class Machine {
     /**
      *
      * @param hum humidity of air
-     * @return temperature capacity of mix
+     * @return density of mix
      */
     private double density_mix(double hum) {
         return -0.00614 * hum + 1.29;
     }
 
+    /**
+     *
+     * @param id - ideal value
+     * @param val - actual value
+     * @return distance between values
+     */
     private double distance(double id, double val) {
         return Math.abs(id - val);
     }

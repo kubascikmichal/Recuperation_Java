@@ -1,7 +1,9 @@
 package com.company;
 
 public class Simulation {
-
+    /**
+     * main process of simulation
+     */
     public static void run(){
         Room room = new Room(100, 30, 22,0.04);
         Machine my_intelligent_machine = new Machine(22, 30);
